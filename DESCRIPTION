@@ -18,4 +18,6 @@ Imports:
     testthat,
     ptw, 
     jsonlite, 
-    optimx
+    optimx, 
+    zoo
+

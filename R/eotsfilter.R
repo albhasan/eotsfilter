@@ -2,8 +2,55 @@
 #
 # @return A character
 getcapabilities <- function(){
-  cap <- '{"service":"eotsfilter","filters":[{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":1000},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":{"nfreq":{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":100000000,"default":1},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"dlog","name":"Double logistic function","missingdata":"false","parameters":{"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}}]}'
+  cap <- '{"service":"eotsfilter","filters":[{"alias":"fill","name":"Fill in the missing observations","missingdata":"true","parameters":{"type":{"keyname":"type","keytype":"integer","keymin":1,"keymax":6,"default":1},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":1000},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":{"nfreq":{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":100000000,"default":1},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"dlog","name":"Double logistic function","missingdata":"false","parameters":{"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"sts","name":"Fit structural time series","missingdata":"false","parameters":{"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}}]}'
   return(jsonlite::fromJSON(cap))
+}
+
+
+
+# Fill in the gaps of a time series
+#
+# @param type   A numeric. The type of fill
+# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+# @return       A list representing A JSON object of type SAMPLE
+fill <- function(type, sample){
+  value.list <- sample$attributes$values                                        # get observations
+  valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
+  date.vec <- as.Date(sample$timeline)
+  fill.list <- lapply(value.list, function(value.vec, valid.vec, date.vec){
+    value.vec[!valid.vec] <- NA
+    value.zoo <- zoo::zoo(value.vec, date.vec)
+    if(type == 0){
+      value.zoo <- zoo::na.approx(value.zoo)                                    # straight line
+    }else if(type == 1){
+      value.zoo <- zoo::na.locf(value.zoo)                                      # Last Observation Carried Forward
+    }else if(type == 2){
+      value.zoo <- zoo::na.spline(value.zoo)                                    # splines
+    }else if(type == 3){
+      value.zoo <- zoo::na.aggregate(value.zoo)                                 # mean
+    }else if(type == 4){
+      value.zoo <- zoo::na.aggregate(value.zoo, zoo::as.yearmon)                     # mean - group by months
+    }else if(type == 5){
+      value.zoo <- zoo::na.aggregate(value.zoo, months)                         # mean - group by calendar months
+    }else if(type == 6){
+      value.zoo <- zoo::na.aggregate(value.zoo, format, "%Y")                   # mean - group by years
+    }else{
+      value.zoo <- zoo::na.locf(value.zoo)
+    }
+    return(zoo::coredata(value.zoo))
+  },
+  valid.vec = valid.vec,
+  date.vec = date.vec
+  )
+  sample$attributes$values <- fill.list                                         # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
+  sample$attributes$attribute <- paste(                                         # update attribute names
+    sample$attributes$attribute,
+    "fill_",
+    type,
+    sep = "-"
+  )
+  return(sample)
 }
 
 
@@ -22,6 +69,7 @@ whitaker1 <- function(lambda, sample){
   }
   vfilter.list <- lapply(value.list, ptw::whit1, lambda = lambda)               # filter
   sample$attributes$values <- vfilter.list                                      # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
     "whitaker1",
@@ -46,6 +94,7 @@ whitaker2 <- function(lambda, sample){
   }
   vfilter.list <- lapply(value.list, ptw::whit2, lambda = lambda)               # filter
   sample$attributes$values <- vfilter.list                                      # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
     "whitaker1",
@@ -93,6 +142,7 @@ fourier <- function(nfreq, sample){
                           }
   )
   sample$attributes$values <- vfourier.list                                     # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
     "fourier",
@@ -148,9 +198,40 @@ doublelogistic <- function(sample){
                       dlog1.f = dlog1.f
   )
   sample$attributes$values <- dlog.list                                         # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
     "dlog",
+    sep = "-"
+  )
+  return(sample)
+}
+
+
+
+# Warpper of the Fit Structural Time Series
+#
+# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+# @return       A list representing A JSON object of type SAMPLE
+sts <- function(sample){
+  value.list <- sample$attributes$values                                        # get observations
+  valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
+  # no handling of NAs
+  if(sum(valid.vec) != length(valid.vec)){
+    stop("kfas cannot handle missing values")
+  }
+  # filter
+  sts.list <- lapply(value.list,
+                      function(value.vec){
+                        fit <- stats::StructTS(value.vec, type = "level")
+                        return(as.numeric(fit$fitted))
+                      }
+  )
+  sample$attributes$values <- sts.list                                          # rebuild JSON
+  sample$validdata <- rep(1, length(sample$validdata))
+  sample$attributes$attribute <- paste(                                         # update attribute names
+    sample$attributes$attribute,
+    "sts",
     sep = "-"
   )
   return(sample)
