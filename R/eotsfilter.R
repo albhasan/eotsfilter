@@ -2,7 +2,7 @@
 #
 # @return A character
 getcapabilities <- function(){
-  cap <- '{"service":"eotsfilter","filters":[{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":1000},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":{"nfreq":{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":100000000,"default":1},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}}]}'
+  cap <- '{"service":"eotsfilter","filters":[{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":{"lambda":{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":1000},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":{"nfreq":{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":100000000,"default":1},"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}},{"alias":"dlog","name":"Double logistic function","missingdata":"false","parameters":{"sample":{"id":"UUID","lat":"double","lon":"double","label":"string","timeline":["string date"],"validdata":["boolean"],"attributes":[{"attribute":"string name","values":["double"]},{"attribute":"string name","values":["double"]}]}}}]}'
   return(jsonlite::fromJSON(cap))
 }
 
@@ -76,21 +76,21 @@ fourier <- function(nfreq, sample){
   }
   # filter
   vfourier.list <- lapply(value.list,
-         function(value.vec){
-           time <- 1
-           acq.freq <- (length(value.vec) - 1)/time
-           ts <- seq(0, time, 1/acq.freq)
-           # de-trend
-           trend <- stats::lm(value.vec ~ ts)
-           detrended.trajectory <- trend$residuals
-           obs.pred <- stats::predict(trend)
-           # build the filtered signal
-           X.k <- stats::fft(detrended.trajectory)
-           X.k[seq(nfreq + 1, length(X.k))] <- 0                                # unwanted higher frequencies become 0
-           x.n <- get.trajectory(X.k, ts, acq.freq) / acq.freq                  # TODO: why the scaling?
-           x.n <- x.n + (value.vec - trend$residuals)                           # add back the trend
-           return(Re(x.n))                                                      # gert rid of imaginary numbers
-         }
+                          function(value.vec){
+                            time <- 1
+                            acq.freq <- (length(value.vec) - 1)/time
+                            ts <- seq(0, time, 1/acq.freq)
+                            # de-trend
+                            trend <- stats::lm(value.vec ~ ts)
+                            detrended.trajectory <- trend$residuals
+                            obs.pred <- stats::predict(trend)
+                            # build the filtered signal
+                            X.k <- stats::fft(detrended.trajectory)
+                            X.k[seq(nfreq + 1, length(X.k))] <- 0                                # unwanted higher frequencies become 0
+                            x.n <- get.trajectory(X.k, ts, acq.freq) / acq.freq                  # TODO: why the scaling?
+                            x.n <- x.n + (value.vec - trend$residuals)                           # add back the trend
+                            return(Re(x.n))                                                      # gert rid of imaginary numbers
+                          }
   )
   sample$attributes$values <- vfourier.list                                     # rebuild JSON
   sample$attributes$attribute <- paste(                                         # update attribute names
@@ -103,5 +103,55 @@ fourier <- function(nfreq, sample){
 
 
 
-
-
+# Warpper of the double logistic fit
+#
+# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+# @return       A list representing A JSON object of type SAMPLE
+doublelogistic <- function(sample){
+  value.list <- sample$attributes$values                                        # get observations
+  valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
+  # no handling of NAs
+  if(sum(valid.vec) != length(valid.vec)){
+    stop("doublelogistic cannot handle missing values")
+  }
+  # initial parameters for optimization algorithm
+  start1 <- c(w.ndvi = 0.07,
+              m.ndvi = 0.68,
+              S = 119,
+              A = 282,
+              mS = 0.19,
+              mA = 0.13
+  )
+  # function to optimize
+  dlog1.f <- function(b, mydata){
+    sum((mydata$y - dlog1(mydata$x, w.ndvi = b[1], m.ndvi = b[2], S = b[3], A = b[4], mS = b[5], mA = b[6]))^2)
+  }
+  # filter
+  dlog.list <- lapply(value.list,
+                      function(value.vec, start1, dlog1.f){
+                        doy <- round(seq(from = 1, to = 365, length.out = length(value.vec)))
+                        dlog.df <- data.frame(y = value.vec, x = doy)           # build a data.frame of values and dates
+                        options(warn=-1)
+                        dlog.optx <- optimx::optimx(                                    # optimization
+                          par = start1, fn = dlog1.f, mydata = dlog.df,
+                          control = list(
+                            method = "BFGS",
+                            save.failures = FALSE,
+                            maxit = 2500
+                          )
+                        )
+                        options(warn=0)
+                        params <- as.vector(unlist(dlog.optx["BFGS", 1:6]))
+                        return(dlog1(doy = dlog.df$x, w.ndvi = params[1], m.ndvi = params[2], S = params[3], A = params[4], mS = params[5], mA = params[6]))
+                      },
+                      start1 = start1,
+                      dlog1.f = dlog1.f
+  )
+  sample$attributes$values <- dlog.list                                         # rebuild JSON
+  sample$attributes$attribute <- paste(                                         # update attribute names
+    sample$attributes$attribute,
+    "dlog",
+    sep = "-"
+  )
+  return(sample)
+}

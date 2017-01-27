@@ -17,4 +17,5 @@ Imports:
     roxygen2,
     testthat,
     ptw, 
-    jsonlite
+    jsonlite, 
+    optimx
