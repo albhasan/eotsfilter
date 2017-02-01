@@ -22,7 +22,66 @@
           ]
         }
       ],
-      "sample": "sample object"
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
+    },
+    {
+      "alias": "whitaker1",
+      "name": "Weighted Whittaker smoothing with a first order finite difference penalty",
+      "missingdata": "false",
+      "parameters": [
+        {
+          "keyname": "lambda",
+          "keytype": "double",
+          "keymin": 1,
+          "keymax": 100000000,
+          "default": 100
+        }
+      ],
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
+    },
+    {
+      "alias": "whitaker2",
+      "name": "Weighted Whittaker smoothing with a second order finite difference penalty",
+      "missingdata": "false",
+      "parameters": [
+        {
+          "keyname": "lambda",
+          "keytype": "double",
+          "keymin": 1,
+          "keymax": 100000000,
+          "default": 100
+        }
+      ],
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
+    },
+    {
+      "alias": "fourier",
+      "name": "Filter using the Fast Discrete Fourier Transform",
+      "missingdata": "false",
+      "parameters": [
+        {
+          "keyname": "nfreq",
+          "keytype": "integer",
+          "keymin": 1,
+          "keymax": 100000000,
+          "default": 1
+        }
+      ],
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
+    },
+    {
+      "alias": "dlog",
+      "name": "Double logistic function",
+      "missingdata": "false",
+      "parameters": [],
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
+    },
+    {
+      "alias": "sts",
+      "name": "Fit structural time series",
+      "missingdata": "false",
+      "parameters": [],
+      "sample": "sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"
     }
   ]
 }
