@@ -10,11 +10,11 @@
         },
         "lon": {
           "description": "WGS84 longitude",
-          "type": "number"
+          "type": "string"
         },
         "lat": {
           "description": "WGS84 latitude",
-          "type": "number"
+          "type": "string"
         },
         "label": {
           "description": "Name of the sample",
@@ -22,11 +22,15 @@
         },
         "timeline": {
           "description": "List of sample dates",
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "type": "string"
-          }
+          "type": "string"
+        },
+        "validdata": {
+          "description": "List of sample dates",
+          "type": "string"
+        },
+        "attributes": {
+          "description": "List of lists of observations",
+          "type": "string"
         }
       }
     },
@@ -83,7 +87,7 @@
         },
         "missingdata": {
           "description": "Does the filter support the use of missing data?",
-          "type": "boolean"
+          "type": "string"
         },
         "parameters": {
           "description": "The list of parameters of the filter",
@@ -93,7 +97,8 @@
           }
         },
         "sample": {
-          "$ref": "#/definitions/Sample"
+          "description": "A sample object",
+          "type": "string"
         }
       },
       "required": [
