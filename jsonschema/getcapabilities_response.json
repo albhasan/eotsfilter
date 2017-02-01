@@ -1,0 +1,53 @@
+{
+  "service": "eotsfilter",
+  "filters": [
+    {
+      "alias": "fill",
+      "name": "Fill in the missing observations",
+      "missingdata": true,
+      "parameters": [
+        {
+          "keyname": "type",
+          "keytype": "integer",
+          "keymin": 1,
+          "keymax": 6,
+          "default": 1,
+          "domain": [
+            "line",
+            "last observation",
+            "spline",
+            "mean",
+            "monthly mean",
+            "yearly mean"
+          ]
+        }
+      ],
+        "sample": {
+          "id": "UUID",
+          "lat": "double",
+          "lon": "double",
+          "label": "string",
+          "timeline": [
+            "string date"
+          ],
+          "validdata": [
+            "boolean"
+          ],
+          "attributes": [
+            {
+              "attribute": "string name",
+              "values": [
+                "double"
+              ]
+            },
+            {
+              "attribute": "string name",
+              "values": [
+                "double"
+              ]
+            }
+          ]
+        }
+    }
+  ]
+}
