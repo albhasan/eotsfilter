@@ -1,18 +1,18 @@
-# describe the filtering service
-#
-# @return A character
+#' Describe the filtering service
+#'
+#' @return A character
 getcapabilities <- function(){
-  cap <- '{"service":"eotsfilter","filters":[{"alias":"fill","name":"Fill in the missing observations","missingdata":"true","parameters":[{"keyname":"type","keytype":"integer","keymin":1,"keymax":6,"default":1,"domain":["line","last observation","spline","mean","monthly mean","yearly mean"]}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":[{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":[{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":[{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":100000000,"default":1}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"dlog","name":"Double logistic function","missingdata":"false","parameters":[],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"sts","name":"Fit structural time series","missingdata":"false","parameters":[],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"}]}'
+  cap <- '{"service":"eotsfilter","filters":[{"alias":"fill","name":"Fill in the missing observations","missingdata":"true","parameters":[{"keyname":"type","keytype":"integer","keymin":1,"keymax":6,"default":1,"domain":["line","last observation","spline","mean","monthly mean","yearly mean"]}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"whitaker1","name":"Weighted Whittaker smoothing with a first order finite difference penalty","missingdata":"false","parameters":[{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"whitaker2","name":"Weighted Whittaker smoothing with a second order finite difference penalty","missingdata":"false","parameters":[{"keyname":"lambda","keytype":"double","keymin":1,"keymax":100000000,"default":100}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"fourier","name":"Filter using the Fast Discrete Fourier Transform","missingdata":"false","parameters":[{"keyname":"nfreq","keytype":"integer","keymin":1,"keymax":-1,"default":1}],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"doublelogistic","name":"Double logistic function","missingdata":"false","parameters":[],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"},{"alias":"sts","name":"Fit structural time series","missingdata":"false","parameters":[],"sample":"sample object https://github.com/albhasan/eotsfilter/blob/master/jsonschema/sample_schema.json"}]}'
   return(jsonlite::fromJSON(cap))
 }
 
 
 
-# Fill in the gaps of a time series
-#
-# @param type   A numeric. The type of fill
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Fill in the gaps of a time series
+#'
+#' @param type   A numeric. The type of fill
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 fill <- function(type, sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
@@ -29,7 +29,7 @@ fill <- function(type, sample){
     }else if(type == 3){
       value.zoo <- zoo::na.aggregate(value.zoo)                                 # mean
     }else if(type == 4){
-      value.zoo <- zoo::na.aggregate(value.zoo, zoo::as.yearmon)                     # mean - group by months
+      value.zoo <- zoo::na.aggregate(value.zoo, zoo::as.yearmon)                # mean - group by months
     }else if(type == 5){
       value.zoo <- zoo::na.aggregate(value.zoo, months)                         # mean - group by calendar months
     }else if(type == 6){
@@ -56,11 +56,11 @@ fill <- function(type, sample){
 
 
 
-# Wrapper of the Weighted Whittaker smoothing with a first order finite difference penalty
-#
-# @param lambda A numeric. The smoothing parameter
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Wrapper of the Weighted Whittaker smoothing with a first order finite difference penalty
+#'
+#' @param lambda A numeric. The smoothing parameter
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 whitaker1 <- function(lambda, sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
@@ -81,11 +81,11 @@ whitaker1 <- function(lambda, sample){
 
 
 
-# Wrapper of the Weighted Whittaker smoothing with a second order finite difference penalty
-#
-# @param lambda A numeric. The smoothing parameter
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Wrapper of the Weighted Whittaker smoothing with a second order finite difference penalty
+#'
+#' @param lambda A numeric. The smoothing parameter
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 whitaker2 <- function(lambda, sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
@@ -97,7 +97,7 @@ whitaker2 <- function(lambda, sample){
   sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
-    "whitaker1",
+    "whitaker2",
     sep = "-"
   )
   return(sample)
@@ -106,11 +106,11 @@ whitaker2 <- function(lambda, sample){
 
 
 
-# Warpper of the Fourier filter
-#
-# @param sample A numeric. Number of low frequencies to keep
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Warpper of the Fourier filter
+#'
+#' @param nfreq A numeric. Number of low frequencies to keep
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 fourier <- function(nfreq, sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
@@ -153,10 +153,10 @@ fourier <- function(nfreq, sample){
 
 
 
-# Warpper of the double logistic fit
-#
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Warpper of the double logistic fit
+#'
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 doublelogistic <- function(sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
@@ -209,10 +209,10 @@ doublelogistic <- function(sample){
 
 
 
-# Warpper of the Fit Structural Time Series
-#
-# @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
-# @return       A list representing A JSON object of type SAMPLE
+#' Warpper of the Fit Structural Time Series
+#'
+#' @param sample A list. A SAMPLE object processed using jsonlite::fromJSON
+#' @return       A list representing A JSON object of type SAMPLE
 sts <- function(sample){
   value.list <- sample$attributes$values                                        # get observations
   valid.vec <- as.logical(sample$validdata)                                     # get valid observation vector
