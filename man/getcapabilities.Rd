@@ -2,7 +2,7 @@
 % Please edit documentation in R/eotsfilter.R
 \name{getcapabilities}
 \alias{getcapabilities}
-\title{describe the filtering service}
+\title{Describe the filtering service}
 \usage{
 getcapabilities()
 }
@@ -10,5 +10,5 @@ getcapabilities()
 A character
 }
 \description{
-describe the filtering service
+Describe the filtering service
 }

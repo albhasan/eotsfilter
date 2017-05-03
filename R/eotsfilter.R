@@ -1,4 +1,4 @@
-#' describe the filtering service
+#' Describe the filtering service
 #'
 #' @return A character
 getcapabilities <- function(){
@@ -29,7 +29,7 @@ fill <- function(type, sample){
     }else if(type == 3){
       value.zoo <- zoo::na.aggregate(value.zoo)                                 # mean
     }else if(type == 4){
-      value.zoo <- zoo::na.aggregate(value.zoo, zoo::as.yearmon)                     # mean - group by months
+      value.zoo <- zoo::na.aggregate(value.zoo, zoo::as.yearmon)                # mean - group by months
     }else if(type == 5){
       value.zoo <- zoo::na.aggregate(value.zoo, months)                         # mean - group by calendar months
     }else if(type == 6){
