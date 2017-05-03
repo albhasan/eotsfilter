@@ -97,7 +97,7 @@ whitaker2 <- function(lambda, sample){
   sample$validdata <- rep(1, length(sample$validdata))
   sample$attributes$attribute <- paste(                                         # update attribute names
     sample$attributes$attribute,
-    "whitaker1",
+    "whitaker2",
     sep = "-"
   )
   return(sample)
