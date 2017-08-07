@@ -40,13 +40,13 @@
   kg[1] <- NA
   # compute
   for(i in 2:(length(measurement) + 1)){
-    kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
+    kg[i] <- .KG(e_est = e_est[i - 1], e_mea = error_in_measurement[i - 1])
     m <- measurement[i - 1]
     if(is.na(m)){
       m <- est[i - 1]                                                           # if the measurement is missing, use the estimation instead
     }
-    est[i] <- .EST_t(kg[i], est[i - 1], m)
-    e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
+    est[i] <- .EST_t(kg = kg[i], est_t1 = est[i - 1], mea = m)
+    e_est[i] <- .E_EST_t(kg = kg[i], e_est_t1 = e_est[i - 1])
   }
   # format the results
   res <- cbind(c(NA, measurement), c(NA, error_in_measurement), est, e_est, kg)

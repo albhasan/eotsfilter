@@ -21,10 +21,10 @@ kalmanfilter <- function(measurement,
     initial_estimate <- base::mean(measurement, na.rm = TRUE)
   }
   if(is.null(initial_error_in_estimate) || is.na(initial_error_in_estimate)){
-    initial_error_in_estimate <- base::abs(stats::sd(measurement, na.rm = TRUE))
+    initial_error_in_estimate <- 3 * base::abs(stats::sd(measurement, na.rm = TRUE))
   }
   if(is.null(error_in_measurement)){
-    error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
+    error_in_measurement <- 2 * rep(stats::sd(measurement, na.rm = TRUE), length.out = base::length(measurement))
   }
   # do
   return(
@@ -34,22 +34,4 @@ kalmanfilter <- function(measurement,
                   initial_error_in_estimate = initial_error_in_estimate)
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
