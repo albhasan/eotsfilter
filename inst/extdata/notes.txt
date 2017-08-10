@@ -1,0 +1,34 @@
+File:
+deforestation_points1.csv
+
+Original name:
+deforestation_points_226_64.csv
+
+Source:
+https://github.com/e-sensing/sits/blob/master/inst/extdata/samples/deforestation_points_226_64.csv
+
+Description:
+These deforestation points were joined to deter[1] data 2014-2015 in order to get deforestation dates
+
+
+
+File:
+deforestation_points2.csv
+
+Original name:
+sample#2_points_226_64.csv
+
+Source:
+Rodrigo Anzolin Begotti <rodrigo_anz@yahoo.com.br>
+
+Date:
+2017-08-03
+
+Description:
+"amostras de corte raso e floresta primária para a órbita/ponto Landsat 226/064"
+These deforestation points were joined to deter[1] data 2014-2015 in order to get deforestation dates
+
+
+
+
+[1] http://www.obt.inpe.br/deter/dados/

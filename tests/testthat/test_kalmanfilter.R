@@ -29,7 +29,7 @@ restest <- apply(
   MARGIN = c(1,2),
   FUN = function(x){
     if(!is.na(x)){
-    testthat::expect_lt(x, expected = 3.4)
+      testthat::expect_lt(x, expected = 3.4)
     }
   }
 )
@@ -37,9 +37,9 @@ restest <- apply(
 # ALL PARAMETERS ARE NULL BUT MEASUREMENTS
 #-------------------------------------------------------------------------------
 res <- eotsfilter::kalmanfilter(rnorm(10),
-                         error_in_measurement = NULL,
-                         initial_estimate = NULL,
-                         initial_error_in_estimate = NULL)
+                                error_in_measurement = NULL,
+                                initial_estimate = NULL,
+                                initial_error_in_estimate = NULL)
 testthat::expect_false(is.null(res))
 #-------------------------------------------------------------------------------
 # ALL PARAMETERS ARE NULL AND ALSO THE FIRST MEASUREMENT
@@ -75,3 +75,41 @@ res <- eotsfilter::kalmanfilter(measurement,
                                 initial_error_in_estimate = NULL)
 testthat::expect_false(is.null(res))
 
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# LOGISTIC KALMAN
+#-------------------------------------------------------------------------------
+logistG <- function(r, p, k, t){
+  k * p * exp(r*t) / (k + p * (exp(r*t) - 1))
+}
+
+k <- 100
+p0 <- 0.1*k
+r <- 0.2
+deltaT <- 0.1
+
+# Let's create some sample data:
+set.seed(12345)
+
+obsVariance <- 25
+nObs = 250
+nu <- rnorm(nObs, mean=0, sd=sqrt(obsVariance))
+true.val <- c(p0, logistG(r, p0, k, (1:(nObs-1))*deltaT))
+pop <- true.val + nu
+
+res <- .kalmanfilter_LOG(population = pop,
+                         population_error = sqrt(obsVariance),
+                         rate = r,
+                         k = k,
+                         deltaT = deltaT,
+                         Sigma = diag(c(144, 25)))
+
+testthat::expect_true(length(true.val) == length(res$Population))
+testthat::expect_lt(abs(mean(tail(true.val)) - mean(tail(res$Population))), expected = 0.0179)
+testthat::expect_lt(abs(r - mean(tail(res$Rate))), expected = 0.00174)
