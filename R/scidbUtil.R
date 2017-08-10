@@ -365,7 +365,7 @@ missingtids <- function(tid){
   proj4326 <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
   proj_modis_sinusoidal <- "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"
   S <- SpatialPoints(lonlat.Matrix)
-  proj4string(S) <-CRS(proj4326)
+  sp::proj4string(S) <-CRS(proj4326)
   llmat <- spTransform(S, CRS(proj_modis_sinusoidal))
   res <- .sinusoidal2gmpi(llmat@coords, pixelSize)
   rownames(res) <- NULL
