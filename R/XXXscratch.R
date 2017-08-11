@@ -1,40 +1,14 @@
-# #scratch
-#
-# ################################################################################
-# # get the samples data from SciDb
-# ################################################################################
-#
-# source("R/scidbUtil.R")
-# samples1 <- read.csv("inst/extdata/deforestation_points1.csv")
-# samples2 <- read.csv("inst/extdata/deforestation_points2.csv")
-#
-#
-# #-------------------------------
-# # read the sata
-# #-------------------------------
-# getwd()
-# source("scidbUtil.R")
-# samples1 <- read.csv("deforestation_points1.csv")
-# samples2 <- read.csv("deforestation_points2.csv")
-# #-------------------------------
-# # coordinates transformation
-# # WGS84 to col_id row_id
-# #-------------------------------
-# pixelSize <- .calcPixelSize(4800, .calcTileWidth())
-# proj4326 <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-# proj_modis_sinusoidal <- "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m +no_defs"
-# lonlat.Matrix1 <- as.matrix(samples1[c("X", "Y")])
-# lonlat.Matrix2 <- as.matrix(samples2[c("X", "Y")])
-# S1 <- sp::SpatialPoints(lonlat.Matrix1)
-# S2 <- sp::SpatialPoints(lonlat.Matrix2)
-# sp::proj4string(S1) <- sp::CRS(proj4326)
-# sp::proj4string(S2) <- sp::CRS(proj4326)
-# lonlat.Matrix.res1 <- sp::spTransform(S1, sp::CRS(proj_modis_sinusoidal))
-# lonlat.Matrix.res2 <- sp::spTransform(S2, sp::CRS(proj_modis_sinusoidal))
-# res1 <- .sinusoidal2gmpi(t(bbox(lonlat.Matrix.res1)), pixelSize)
-# res2 <- .sinusoidal2gmpi(t(bbox(lonlat.Matrix.res2)), pixelSize)
-#
-#
-#
-#
-#
+# #---- get the samples data from SciDb ----
+# samples1 <- read.csv("inst/extdata/deforestation_points1.csv", stringsAsFactors = FALSE)
+# samples2 <- read.csv("inst/extdata/deforestation_points2.csv", stringsAsFactors = FALSE)
+# cnames <- c("id", "longitude", "latitude", "start_date", "end_date", "label", "linkcolumn", "class_name", "scene_id", "areameters", "view_date", "julday")
+# samples1 <- samples1[cnames]
+# samples2 <- samples2[cnames]
+# con <- scidb::scidbconnect()
+# pixelSize <-scidbutil::calcPixelSize(4800, scidbutil::calcTileWidth())
+# samples1 <- scidbutil::getSdbDataFromPoints(samples.df = samples1, arrayname = "mod13q1_512", con = con, pixelSize = pixelSize)
+# save(samples1, file = "samples1.RData")
+# rm(samples1)
+# samples2 <- scidbutil::getSdbDataFromPoints(samples.df = samples2, arrayname = "mod13q1_512", con = con, pixelSize = pixelSize)
+# save(samples2, file = "samples2.RData")
+# rm(samples2)
