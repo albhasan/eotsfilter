@@ -19,6 +19,9 @@ Imports:
     zoo,
     scidbutil
 Suggests:
-    testthat 
+    testthat ,
+    knitr,
+    rmarkdown
 Remotes:
     albhasan/scidbutil
+VignetteBuilder: knitr
