@@ -1,5 +1,5 @@
 ---
-title: "Vignette Title"
+title: "Filtering of time series of Earth observation data"
 author: "Alber Sanchez"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -8,10 +8,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-
-
-
 
 # Get the sample data from SciDB
 
@@ -30,11 +26,11 @@ pixelSize <-scidbutil::calcPixelSize(4800, scidbutil::calcTileWidth())
 samples1 <- scidbutil::getSdbDataFromPoints(samples.df = samples1, 
                                             arrayname = "mod13q1_512", 
                                             con = con, pixelSize = pixelSize)
-save(samples1, file = "samples1.RData")
-rm(samples1)
-samples2 <- scidbutil::getSdbDataFromPoints(samples.df = samples2, arrayname = "mod13q1_512", con = con, pixelSize = pixelSize)
-save(samples2, file = "samples2.RData")
-rm(samples2)
+samples2 <- scidbutil::getSdbDataFromPoints(samples.df = samples2, 
+                                            arrayname = "mod13q1_512", 
+                                            con = con, pixelSize = pixelSize)
+devtools::use_data(samples1)
+devtools::use_data(samples2)
 ```
 
 
