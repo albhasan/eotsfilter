@@ -1,0 +1,91 @@
+---
+title: "Get sample data"
+author: "Alber Sanchez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Get the sample data from SciDB
+
+## Deforestation samples
+
+Here we describe how to build the datasets `samples1` and `samples2`. These samples were collected by [Rodrigo Anzolin Begotti](http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=K4594139D5) who works for the [e-sensing project](http://esensing.org/). The original CSV files were spatially joined --- using [QGIS](http://qgis.org/en/site/) --- to DETER [data](http://www.obt.inpe.br/deter/dados/) to get the reported deforestation date of each point. Then, we joined the [MOD13Q1 data](https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1) using the using the latitude and longitude in each CSV sample. These MOD13Q1 data was previously uploaded to an array in the [SciDB database](scidb.org/) by the e-sensing project.
+
+The code was used in the last part, to join the MOD13Q1 time series to the deforestation-DETER samples stored in CSV files. 
+
+```{r get TS from SciDB, eval=FALSE, include=TRUE}
+samples1 <- read.csv("inst/extdata/deforestation_points1.csv", stringsAsFactors = FALSE)
+samples2 <- read.csv("inst/extdata/deforestation_points2.csv", stringsAsFactors = FALSE)
+cnames <- c("id", "longitude", "latitude", "start_date", "end_date", "label", 
+            "linkcolumn", "class_name", "scene_id", "areameters", "view_date", 
+            "julday")
+samples1 <- samples1[cnames]
+samples2 <- samples2[cnames]
+con <- scidb::scidbconnect()
+pixelSize <-scidbutil::calcPixelSize(4800, scidbutil::calcTileWidth())
+samples1 <- scidbutil::getSdbDataFromPoints(samples.df = samples1, 
+                                            arrayname = "mod13q1_512", 
+                                            con = con, pixelSize = pixelSize)
+samples2 <- scidbutil::getSdbDataFromPoints(samples.df = samples2, 
+                                            arrayname = "mod13q1_512", 
+                                            con = con, pixelSize = pixelSize)
+#devtools::use_data(samples1)
+#devtools::use_data(samples2)
+save(samples1, file = "samples1")
+save(samples2, file = "samples2")
+```
+
+
+## Manicorao samples
+
+In 2015, Christopher Stephan wrote his thesis entitled *Automating Near Real-Time Deforestation Monitoring With Satellite Image Time Series*. In his thesis, he compares the results from BFAST monitor algorithm with PRODES data from reference areas of clear-cut deforestation. PRODES is the brazilian Amazon forest monitoring system. This thesis is available [here](http://www.dpi.inpe.br/gilberto/teses/msc_thesis_christopher_stephan.pdf).
+
+Mr. Stephan tested his work on two sites of different characteristics: 
+
+- Study site A. Large rectangular areas of clear-cut deforestation
+- Study site B. Small and large sized areas of clear-cut deforestation
+
+These are the coordinates of the minimum bounding boxes of both sites in WGS84:
+
+|Site|Lon min  |Lon max  |Lat min  |Lat max  |
+|:---|--------:|--------:|---------|--------:|
+|A   |-61.5561 |-61.50699|-7.715076|-7.663737|
+|B   |-61.80164|-61.16771|-8.107933|-7.628022|
+
+
+To get the data, first we transform from geographic coordinates to SciDB array indexes
+
+```{r wgs84 to crid}
+siteA.mat <- matrix(c(-61.5561, -61.50699, -7.715076, -7.663737), ncol = 2)
+siteB.mat <- matrix(c(-61.80164, -61.16771, -8.107933, -7.628022), ncol = 2)
+ps <- scidbutil::calcPixelSize(resolution = 4800, 
+                               tileWidth = scidbutil::calcTileWidth())
+
+# WGS84 to dol_id & row_id
+siteA.crid <- scidbutil::wgs84gmpi(lonlat.mat = siteA.mat, pixelSize = ps)
+siteB.crid <- scidbutil::wgs84gmpi(lonlat.mat = siteB.mat, pixelSize = ps)
+
+# build the AFL queries
+siteA.afl <- paste("between(mod13q1_512,",paste(min(siteA.crid[,1]), min(siteA.crid[,2]), 0, max(siteA.crid[,1]), max(siteA.crid[,2]), sep = ","), ", 500)", sep = "")
+siteB.afl <- paste("between(mod13q1_512,",paste(min(siteB.crid[,1]), min(siteB.crid[,2]), 0, max(siteB.crid[,1]), max(siteB.crid[,2]), sep = ","), ", 500)", sep = "")
+```
+
+Now we can retrieve data using the SciDB R package.
+
+```{r get Manicore data, eval=FALSE, include=TRUE}
+con <- scidb::scidbconnect()
+siteA <- scidb::iquery(con, siteA.afl, return = TRUE, binary = FALSE)
+siteB <- scidb::iquery(con, siteB.afl, return = TRUE, binary = FALSE)
+devtools::use_data(siteA)
+devtools::use_data(siteB)
+# save
+#devtools::use_data(siteA)
+#devtools::use_data(siteB)
+save(siteA, file = "siteA.RData")
+save(siteB, file = "siteB.RData")
+```
+

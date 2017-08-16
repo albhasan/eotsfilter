@@ -1,0 +1,66 @@
+Automating Near Real-Time Deforestation Monitoring With Satellite Image Time Series
+By Christopher Stephan
+
+http://www.dpi.inpe.br/gilberto/teses/msc_thesis_christopher_stephan.pdf
+
+Study area: Manicorao
+
+====================================================================
+Study site A Large rectangular areas of clear-cut deforestation
+====================================================================
+minLon maxLon minLat maxLat
+-61.5561, -61.50699, -7.715076, -7.663737
+
+Assuming WGS84, export to MODIS SINUSOIDAL
+proj +datum=WGS84 +proj=sinu +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs
+-61.5561  -7.715076
+-61.50699  -7.663737
+
+Results in MODIS SINUSOIDAL:
+-6790774.88    -853140.53
+-6786172.69    -847462.74
+
+=====
+# R code
+source(scidbUtil.R)
+
+lonlat.mat <- matrix(data = c(-6790774.88,-853140.53,-6786172.69,-847462.74), nrow = 2, byrow = TRUE)
+.sinusoidal2gmpi(lonlat.mat, .calcPixelSize(4800, .calcTileWidth()))
+=====
+    col_id row_id
+[1,]  57084  46881
+[2,]  57104  46857
+
+
+
+====================================================================
+Study site B Small and large sized areas of clear-cut deforestation
+====================================================================
+minLon minLat
+-61.80164, -8.107933
+
+maxLon maxLat
+-61.16771, -7.628022
+
+Assuming WGS84, export to MODIS SINUSOIDAL
+proj +datum=WGS84 +proj=sinu +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs
+-61.80164 -8.107933
+-61.16771 -7.628022
+
+Results in MODIS SINUSOIDAL:
+-6811411.83    -896588.68
+-6749300.38    -843512.88
+
+
+=====
+# R code
+source(scidbUtil.R)
+
+lonlat.mat <- matrix(data =
+c(-6811411.83,-896588.68,-6749300.38,-843512.88), nrow = 2, byrow = TRUE)
+.sinusoidal2gmpi(lonlat.mat, .calcPixelSize(4800, .calcTileWidth()))
+=====
+     col_id row_id
+[1,]  56995  47069
+[2,]  57264  46840
+
