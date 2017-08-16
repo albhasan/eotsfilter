@@ -51,9 +51,11 @@ samples2
 }
 \description{
 A dataset containing samples of deforestation in the Amazon forest. The
-samples are joined to DETER data in order to get the deforestation date.
-Additionally, the samples are joined to their corresponding time series of
-MODIS MOD13Q1 data
-forest.
+samples are specific instances of \emph{corte raso} in primary Amazon forests
+for the orbit/point Landsat 226/064. These samples were collected by Rodrigo
+Anzolin Begotti who works for the e-sensing project. The original CSV files
+are spatially joined to DETER data to get the reported deforestation date of
+each sample. The data is also joined to MOD13Q1 data to get the time series
+of vegetation indexes.
 }
 \keyword{datasets}
