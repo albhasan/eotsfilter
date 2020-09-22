@@ -1,9 +1,26 @@
+================================================================================
 Automating Near Real-Time Deforestation Monitoring With Satellite Image Time Series
 By Christopher Stephan
 
 http://www.dpi.inpe.br/gilberto/teses/msc_thesis_christopher_stephan.pdf
-
 Study area: Manicorao
+================================================================================
+
+
+EVI	
+MOD13Q1
+Smoothed MODIS time series of EVI were accessed through the online Data Service Platform for Vegetation Indices Processing which is offered by the University of Natural Resources and Life Science (BOKU) in Vienna, Austria
+
+In summary, the found results suggest the choice of raw MODIS time series over Whittaker smoothed vegetation index time series to achieve a high spatial accuracy to predict clear-cut deforestation using BFAST Monitor. 
+
+minLon maxLon minLat maxLat
+xmin, xmax, ymin, ymax
+
+-61.8061, -61.16994, -8.110165, -7.628022	Manicoré
+-61.5561, -61.50699, -7.715076, -7.663737	Study site A – Large rectangular areas of clear-cut deforestation:  23 × 22 (a total of 506) pixel.
+-61.80164, -61.16771, -8.107933, -7.628022	Study site B – Small- and large-sized areas of clear-cut deforestation:  61060 pixel
+
+
 
 ====================================================================
 Study site A Large rectangular areas of clear-cut deforestation

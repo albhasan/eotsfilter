@@ -1,0 +1,185 @@
+---
+title: "Introduction to state space time series analysis"
+author: "Alber Sánchez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r load_data, include=FALSE}
+# load data
+data(samples2, package = "eotsfilter")
+
+# subset the samples which have a DETER deforestation date
+samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+havedeter <- samples.df$view_date != ""
+samples <- samples2[havedeter]
+
+# build a list of data.frames
+ts.list <- lapply(samples, function(x){
+  mtid <- scidbutil::missingtids(x$time_series$time_id)[1]                      # spot the first missing time ID
+  return(x$time_series[x$time_series$time_id < mtid, ]/10000)
+})
+
+data.1 <- ts.list[[19]][c("ndvi")]
+colnames(data.1) <- c("vi")
+
+
+data.1 <- ts(data.1$vi, start = 2000 + (3 * 23/365.25), frequency = 23)
+```
+
+
+# The local level model
+- The level component is allowed to vary in time
+- In a linear model is the intercept
+- Disturbances: observation and level. Serially and mutually independent, normally distributed, 0 mean and each has its own variances
+- Equations
+    - observation or measurement 
+    - state equation
+
+```{r}
+
+```
+
+
+## Deterministic level
+
+- level disturbances are 0
+- book uses *diffuse initialization*. It estimates the initial value
+- In state space models the unknown parameters include the onbservation and statte duisturbance variances, also known as *hyperparameters*
+
+
+"Using the diffuse initialisation method, the analysis of the log of the number of UK drivers KSI with the deterministic level model yields the following results:"
+
+```{r}
+fit <- lm(data.1~1)
+res <- residuals(fit)
+```
+
+```{r}
+# Coefficients
+(coefs <- round(as.numeric(coef(fit)), 8))
+
+# Error variance
+(error.var <- round(summary(fit)$sigma^2, 8))
+```
+
+```{r}
+#par(mfrow=c(1,1))
+plot.ts(c(data.1), col = "darkgrey", xlab="", ylab = "log KSI", pch=3, cex=0.5, 
+        cex.lab = 0.8, cex.axis = 0.7, xlim = c(0,200))
+abline(h = coefs[1], col = "blue", lwd = 2, lty=2)
+legend("topright", leg = c("VI", " deterministic level"), 
+       cex = 0.6, lty = c(1, 2), col = c("darkgrey","blue"), pch=c(3,NA), 
+       bty = "y", horiz = T)
+# Figure 2.1: Deterministic level.
+```
+
+```{r}
+#par(mfrow=c(1,1))
+plot(ts(residuals(fit)), ylab = "", xlab = "", xlim = c(0,200), 
+     col = "darkgrey", lty = 2)
+abline(h=0)
+# Figure 2.2: Irregular component for deterministic level model.
+```
+
+
+Tests
+
+```{r}
+# Normality test - PASS????
+shapiro.test(res)
+```
+```{r}
+#Independence - FAIL???
+Box.test(res, lag = 15, type = "Ljung")
+```
+
+
+## Stochastic level
+
+
+
+
+```{r}
+fn <- function(params){
+  dlm::dlmModPoly(order = 1, dV = exp(params[1]) , dW = exp(params[2]))
+}
+y <- c(data.1)
+fit <- dlm::dlmMLE(y, rep(0,2), fn)
+mod <- fn(fit$par)
+(obs.error.var <- dlm::V(mod))                        # Observation eq error variance 
+(state.error.var <- dlm::W(mod))                      # State eq error variance
+(mu.1 <- dlm::dropFirst(dlm::dlmFilter(y,mod)$m)[1])  # MLE of the initial value
+res <- residuals(dlm::dlmFilter(y, mod), sd = F)
+filtered <- dlm::dlmFilter(y, mod)
+smoothed <- dlm::dlmSmooth(filtered)
+mu <- dlm::dropFirst(smoothed$s)
+mu.1 <- mu[1]
+```
+
+Estimates
+- Observation eq error variance
+- State eq error variance
+- MLE of the initial value
+
+
+```{r}
+#par(mfrow=c(1,1))
+plot.ts(y, col = "darkgrey", xlab="", ylab = "VI",pch=3, cex=0.5, 
+        cex.lab=0.8, cex.axis = 0.7, xlim = c(0,200))
+lines(mu, col = "blue", lwd = 2, lty = 2)
+#lines(ptw::whit2(y, lambda = 100), col = "red", lwd = 2, lty = 2)
+for(i in 1:length(y)){
+  if(i%%23 == 0){
+    abline(v = i, col = "grey10")
+  }
+}
+legend("topright",leg = c("VI", "stochastic level"), cex = 0.6, 
+       lty = c(1, 2), col = c("darkgrey","blue"), pch=c(3,NA), bty = "y", 
+       horiz = T)
+# Figure 2.3: Stochastic level.
+```
+
+```{r}
+#par(mfrow=c(1,1))
+plot.ts(res, ylab="", xlab="", col = "darkgrey", main = "", cex.main = 0.8)
+abline(h=0)
+```
+
+Tests
+
+```{r}
+# Normality test - FAIL??????????????
+shapiro.test(res)
+
+# Independence - FAIL?????????????????
+Box.test(res, lag = 15, type = "Ljung")
+
+```
+
+
+
+## The local level model ....
+
+```{r}
+data.2 <- data.1
+
+fn <- function(params){
+  dlm::dlmModPoly(order = 1, dV = exp(params[1]) , dW = exp(params[2]))
+}
+fit <- dlm::dlmMLE(data.2, rep(0,2),fn)
+mod <- fn(fit$par)
+(obs.error.var <- dlm::V(mod))
+(state.error.var <- dlm::W(mod))
+filtered <- dlm::dlmFilter(data.2,mod)
+smoothed <- dlm::dlmSmooth(filtered)
+#mu <- dlm::dropFirst(smoothed$s)
+#mu.1 <- mu[1]
+#res <- residuals(filtered, sd = F)
+```
+

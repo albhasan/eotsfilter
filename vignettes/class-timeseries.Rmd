@@ -1,0 +1,48 @@
+---
+title: "Classify timeseries"
+author: "Alber Sánchez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r}
+# load data
+# data(samples2, package = "eotsfilter")
+# 
+# # subset the samples which have a DETER deforestation date
+# samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+# havedeter <- samples.df$view_date != ""
+# samples <- samples2[havedeter]
+# 
+# for(sample in samples){
+#   #sample <- samples[[13]]
+#   
+#   defdate <- as.numeric(gsub("-", "", sample$sample$view_date))
+#   defdate <- scidbutil::ymd2tid_approx(defdate, origin = 20000101, period = 16, yearly = T)
+#   
+#   s <- sample$time_series
+#   p <- ggplot2::ggplot(s, aes(time_id %% 23, ndvi, col = factor(s$reliability))) +
+#                 ylim(0, 10000) + xlim(0, 23) + 
+#                 #geom_vline(xintercept = defdate) + 
+#                 ggplot2::geom_point()  
+#   print(p)
+# }
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# ggplot2::ggplot(s, aes(time_id %% 23, reliability, col = factor(s$reliability))) +
+#   ggplot2::geom_point()  
+
+
+  ```

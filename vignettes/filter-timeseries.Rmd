@@ -9,5 +9,61 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+# Filter data using metadata
 
+```{r}
+data(samples2, package = "eotsfilter")
+
+# subset the samples which have a DETER deforestation date
+samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+havedeter <- samples.df$view_date != ""
+samples <- samples2[havedeter]
+
+#
+for(s in samples){
+  sample.df <- s$sample
+  ts.df <- s$time_series
+  ndvi <- ts.df$ndvi * 0.0001
+  evi <- ts.df$evi   *  0.0001
+  # filter data
+  #bad_data <- NA
+  bad_data <- (ts.df$reliability %in% c(-1, 2, 3))
+  #bad_data <- (ts.df$reliability %in% c(-1, 1 ,2, 3))
+  ndvi[bad_data] <- NA
+  evi[bad_data] <- NA
+  perdata <- sum(!is.na(ndvi))/length(ndvi)
+  # plot
+  plot( y = ndvi, x = ts.df$time_id, type = "o", col = "blue", ylim = c(0,1), 
+        cex = .5, main = paste("TS", round(perdata * 100), "%", sep = " "))
+  lines(y = evi,  x = ts.df$time_id, type = "o", col = "red", cex = .5)
+  # add v lines
+  for(i in ts.df$time_id){
+    # add year lines
+    if(i %% 23 == 0){
+      abline(v = i, col = "gray60")
+    }
+    # add deforestation date
+    ymd <- as.numeric(paste(unlist(strsplit(sample.df$view_date, "-")), collapse = ""))
+    scidbutil::ymd2tid(ymd = ymd, origin = 20000101, period = 16, yearly = TRUE)
+    
+    
+    
+    
+    #if(){}
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
 

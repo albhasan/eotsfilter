@@ -35,3 +35,32 @@ kalmanfilter <- function(measurement,
   )
 }
 
+
+
+#' DEPRECATED (moved to scidbutil) - Add quality description to MOD13Q1
+#' @name addMod13Q1quality
+#' @description  Add readable quality data to a MOD13Q1 time series according to its data quality
+#'
+#' @param x A data frame containing the column c("quality")
+#' @return  A data frame with additional columns.
+#' @export
+addMod13Q1quality <- function(x){
+  stop("DEPRECATED (moved to scidbutil)")
+}
+
+
+
+
+
+
+#' Cast MOD13Q1 quality data to codes
+#' @name mod13q1quality2codes
+#' @description  Cast MOD13Q1 quality data to codes
+#'
+#' @param x A data frame containing the column c("quality")
+#' @return  A data frame with additional columns.
+#' @details See TABLE 2: MOD13Q1 VI Quality at https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1
+#' @export
+mod13q1quality2codes <- function(x){
+  return(.mod13q1quality2codes(x = x))
+}

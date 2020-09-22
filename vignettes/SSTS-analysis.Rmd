@@ -1,0 +1,93 @@
+---
+title: "State Space EO Time Series Analysis"
+author: "Alber Sánchez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Load data
+
+```{r}
+# load data
+data(samples2, package = "eotsfilter")
+
+# subset the samples which have a DETER deforestation date
+samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+havedeter <- samples.df$view_date != ""
+samples <- samples2[havedeter]
+
+# build a list of time series
+ts.list <- lapply(samples, function(x){
+  mtid <- scidbutil::missingtids(x$time_series$time_id)[1] # spot the first missing time ID
+  vi.ts <- ts(x$time_series[x$time_series$time_id < mtid, c("ndvi", "evi")]/10000, frequency = 23, 
+           start = 2000 + (3 * 23/365.25))
+  return(vi.ts)
+})
+
+# 
+vi <- "ndvi"
+```
+
+```{r}
+# plot the autocorrelation functions
+counter <- 0
+
+
+
+for(s in samples){
+  counter <- counter + 1
+  #s <- samples[[1]]
+  data <- s$time_series[vi]
+  colnames(data) <- "vi"
+  t <- 1:dim(data)[1]
+  fit <- lm(data$vi~t)
+  #plot(data$vi)
+  #plot(fit)
+  residuals <- residuals(fit)
+  #acf(c(residuals),15, main = paste(s$sample$col_id, s$sample$row_id, counter, sep = "-"))
+}
+
+
+```
+
+
+
+
+```{r}
+fn <- function(params){
+  dlm::dlmModPoly(order = 1, dV = exp(params[1]) , dW = exp(params[2]))
+}
+counter <- 0
+# for(s in samples){
+#   counter <- counter + 1
+#   s <- samples[[1]]
+#   data <- s$time_series[vi]
+#   colnames(data) <- "vi"
+# 
+#   
+#   fit <- dlm::dlmMLE(data, rep(0,2),fn)
+#   mod <- fn(fit$par)
+#   (obs.error.var <- dlm::V(mod))
+#   (state.error.var <- dlm::W(mod))
+#   filtered <- dlm::dlmFilter(data.2,mod)
+#   smoothed <- dlm::dlmSmooth(filtered)
+#   mu <- dlm::dropFirst(smoothed$s)
+#   mu.1 <- mu[1]
+#   res <- residuals(filtered,sd=F)
+#   temp <- window(cbind(data.2, mu))
+#   plot(temp , plot.type = "single", col = c("darkgrey","blue"), lty = c(1,2), 
+#      xlab = "", ylab = "log KSI")
+#   legend("topright", leg = c("log UK drivers KSI"," stochastic level"), cex = 0.7, 
+#        lty = c(1, 2), col = c("darkgrey","blue"), pch=c(3,NA), bty = "y", 
+#        horiz = T)
+# 
+# }
+
+
+
+```
+

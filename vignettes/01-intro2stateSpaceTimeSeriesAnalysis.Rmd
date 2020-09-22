@@ -1,0 +1,106 @@
+---
+title: "Introduction to state space time series analysis"
+author: "Alber Sánchez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r load_data, include=FALSE}
+# load data
+data(samples2, package = "eotsfilter")
+
+# subset the samples which have a DETER deforestation date
+samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+havedeter <- samples.df$view_date != ""
+samples <- samples2[havedeter]
+
+# build a list of data.frames
+ts.list <- lapply(samples, function(x){
+  mtid <- scidbutil::missingtids(x$time_series$time_id)[1]                      # spot the first missing time ID
+  return(x$time_series[x$time_series$time_id < mtid, ]/10000)
+})
+
+data <- ts.list[[19]][c("ndvi")]
+colnames(data) <- c("vi")
+```
+
+
+# Introduction
+
+
+
+
+```{r}
+t <- 1:dim(data)[1]
+fit <- lm(data$vi~t)
+
+# Coefficients y-axis-intercept and slope
+(coefs <- round(as.numeric(coef(fit)), 8))
+
+# Error Variance
+(error.var <- round(summary(fit)$sigma^2, 8))
+
+# F-test
+(f.stat <- round(summary(fit)$fstatistic[1], 8))
+nrow(data)
+```
+
+
+## Estimates
+
+
+
+
+```{r}
+#par(mfrow = c(1, 1))
+plot(data$vi, col = "darkgrey", xlab="", ylab = "VI", pch = 3, 
+     cex = 0.5, cex.lab = 0.8, cex.axis = 0.7, xlim = c(0, 200))
+abline(coef(lm(data$vi~t)), col = "blue", lwd = 2, lty = 2)
+legend("topright", leg = c("VI against time(in months)",                            "regression line"), cex = 0.6, lty = c(0, 2), col = c("darkgrey", "blue"), pch = c(3, NA), bty = "y", horiz = T)
+# VI Figure 1.1: Scatter plot of the log of the number of UK drivers KSI against time (in months), including regression line.
+```
+
+
+```{r}
+#par(mfrow=c(1,1))
+plot(ts(data$vi), ylab = "",xlab = "", xlim = c(0, 200), col = "darkgrey")
+# Figure 1.2: Log of the number of UK drivers KSI plotted as a time series.
+```
+
+
+
+```{r}
+#par(mfrow=c(1,1))
+plot(ts(residuals(fit)), ylab = "", xlab = "",xlim = c(0, 200), col = "darkgrey",lty=2)
+abline(h=0)
+# Figure 1.3: Residuals of classical linear regression of the log of the number of UK drivers KSI on time.
+```
+
+
+## diagnosics
+
+```{r}
+#par(mfrow=c(1,1))
+random.series <- rnorm(dim(data)[1])
+acf(c(random.series),15,main ="")
+# Figure 1.4: Correlogram of random time series.
+```
+
+
+```{r}
+#par(mfrow=c(1,1))
+residuals <- residuals(fit)
+acf(c(residuals),15,main="")
+# Figure 1.5: Correlogram of classical regression residuals.
+```
+
+# Components of the state of time series
+- level
+- slope
+- seasonal

@@ -1,0 +1,66 @@
+---
+title: "Kalman Vs BFAST"
+author: "Alber Sanchezr"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+# load data
+data(samples2, package = "eotsfilter")
+
+# subset the samples which have a DETER deforestation date
+samples.df <- do.call(rbind, lapply(samples2, function(x){x$sample}))
+havedeter <- samples.df$view_date != ""
+samples <- samples2[havedeter]
+samples.df <- do.call(rbind, lapply(samples, function(x){x$sample}))            # 
+
+
+ts.start <- 2000 + (3 * 23/365.25)
+bandnames <- c("ndvi")
+samples2ts <- function(samples, bandnames, start){
+  res <- lapply(samples, function(x){
+    mtid <- scidbutil::missingtids(x$time_series$time_id)[1] # spot the first missing time ID
+    vi.ts <- ts(x$time_series[x$time_series$time_id < mtid, bandnames]/10000, frequency = 23, start = start)
+    return(vi.ts)
+  })
+  return(res)
+}
+ts.list <- samples2ts(samples = samples, bandnames = bandnames, start = ts.start) 
+
+
+
+
+
+
+for(i in 1:length(samples)){
+  vi.ts <- ts.list[[i]]
+  def.date <- lubridate::decimal_date(lubridate::ymd(samples.df[i,]$view_date))
+  bf <- bfast::bfastmonitor(vi.ts, start = ts.start + 7)
+  plot(vi.ts)
+  abline(v = bf$breakpoint, col = "red")
+  abline(v = def.date, col = "blue")
+}
+
+
+
+#stat::KalmanSmooth()
+
+
+
+
+# build a list of time series
+
+```
+
+
+
+
+
+
+
+

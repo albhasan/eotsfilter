@@ -17,7 +17,10 @@ Imports:
     jsonlite, 
     optimx, 
     zoo,
-    scidbutil
+    scidbutil, 
+    ggplot2,
+    rgdal, 
+    R.utils
 Suggests:
     testthat ,
     knitr,
